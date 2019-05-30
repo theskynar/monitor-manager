@@ -1,18 +1,28 @@
-# Node.js (latest lts version)
-FROM node:10-stretch-slim AS release
+FROM node:10-stretch-slim AS dependencies
 
-# Setup directory
-WORKDIR /usr/bin/monitor-manager/
-COPY . .
+WORKDIR /app
+COPY package*.json ./
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y ca-certificates && update-ca-certificates && \
+    apt-get install -y tzdata && \
+    apt-get install -y git && \
+    apt-get install -y make && \
+    apt-get install -y g++ && \
+    apt-get install -y python
 
-# Install dependencies
 RUN npm install --only=production
 
-# Set timezone
-ENV TZ=America/Sao_Paulo
 
-# Expose volumes
-VOLUME ["/var/log/monitor-manager/"]
+FROM node:10-stretch-slim AS release
 
-# Start application
+WORKDIR /usr/bin/monitor-manager/
+
+COPY . .
+COPY --from=dependencies  /app/node_modules ./node_modules/
+
+RUN apt-get update -y && \
+    apt-get install -y tzdata && \
+    apt-get install -y ca-certificates && update-ca-certificates
+
 CMD ["node", "/usr/bin/monitor-manager/src/index.js"]
