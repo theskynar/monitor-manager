@@ -3,6 +3,8 @@ const config = require('../config');
 const repository = require('../repository/monitor');
 const Event = require('../model/event');
 
+const sleep = (ms) => new Promise((res, rej) => setTimeout(res, ms));
+
 /**
  * Monitor service using kafka.
  *
@@ -39,6 +41,8 @@ class MonitorService {
         // Start repository.
         await repository.start();
 
+        // This is not right, but the kafkaJs sucks
+        await sleep(12000);
         // Start kafka connect.
         await this._consumer.connect();
         await this._consumer.subscribe({ topic: config.kafkaTopic, fromBeginning: config.kafkaFromBegning });
