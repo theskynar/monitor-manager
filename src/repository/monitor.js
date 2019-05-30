@@ -28,13 +28,13 @@ class MonitorRepository {
      * @memberof MonitorRepository
      */
     async start() {
-        await this.createIndex();
-
         const res = await this._client.ping();
 
         if (res.statusCode === 200) {
             console.log('Elastic connected successfuly');
         }
+        
+        await this.createIndex();
     }
 
     /**
@@ -69,6 +69,9 @@ class MonitorRepository {
                             },
                             humidity: {
                                 type: 'double'
+                            },
+                            created: {
+                                type: 'date'
                             }
                         }
                     }
@@ -93,7 +96,10 @@ class MonitorRepository {
     async indexEvent(event) {
         const res = await this._client.index({
             index: 'monitor',
-            body: event
+            body: {
+                ...event,
+                created: new Date()
+            }
         });
 
         return res.body;
